@@ -5,15 +5,21 @@ package goigraph
 #cgo CFLAGS: -I/usr/local/include/igraph
 #include <igraph.h>
 #include <stdio.h>
+#include "primitives.h"
 */
 import "C"
 import (
     "os"
+    "errors"
 )
 
 // An opaque type representing an igraph graph
 type GoGraph struct {
     graph C.igraph_t
+}
+
+type GoVector struct {
+    vector C.igraph_vector_t
 }
 
 func booltoint (in bool) C.int {
@@ -23,6 +29,21 @@ func booltoint (in bool) C.int {
     return C.int(0)
 }
 
+func CreateTestK4 () *GoGraph {
+    graph := &GoGraph {}
+    C.createK4 (&graph.graph)
+    return graph
+}
+
+// Create and return a K4
+func CreateKn (n int) *GoGraph {
+    graph := &GoGraph {}
+    err := C.igraph_full(&graph.graph, C.igraph_integer_t(C.int(n)), C.igraph_bool_t(booltoint(false)), C.igraph_bool_t(booltoint(false)))
+    if err != 0 {
+        return nil
+    }
+    return graph
+}
 
 // Read an edge list file and produce a graph
 func ReadEdgeList (file *os.File, directed bool) *GoGraph {
@@ -46,6 +67,19 @@ func ReadGraphML (file *os.File, index int) *GoGraph {
     return graph
 }
 
+// Write GraphML file
+func (graph *GoGraph) WriteGraphML (file *os.File) error {
+    //C.testWriteGraphMl(&graph.graph) 
+    //return nil
+    fstruct := C.fdopen(C.int(file.Fd()), C.CString("w"))
+    err := C.igraph_write_graph_graphml(&graph.graph, fstruct)
+    if err != 0 {
+        return errors.New("Write failed")
+    }
+    C.fflush(fstruct)
+    return nil
+}
+
 // Read a GML file and produce a graph
 func ReadGML (file *os.File) *GoGraph {
     graph := &GoGraph {}
@@ -55,6 +89,19 @@ func ReadGML (file *os.File) *GoGraph {
         return nil
     }
     return graph
+}
+
+// Write GML file
+func (graph *GoGraph) WriteGML (file *os.File) error {
+    //C.testWriteGraphMl(&graph.graph) 
+    //return nil
+    fstruct := C.fdopen(C.int(file.Fd()), C.CString("w"))
+    err := C.igraph_write_graph_gml(&graph.graph, fstruct, nil, nil)
+    if err != 0 {
+        return errors.New("Write failed")
+    }
+    C.fflush(fstruct)
+    return nil
 }
 
 // Read a Pajek file and produce a graph
@@ -76,3 +123,5 @@ func (graph *GoGraph) MinCutValue () float64 {
     res := float64(result)
     return res
 }
+
+
