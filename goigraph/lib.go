@@ -1,7 +1,7 @@
 // A Go library wrapping igraph
 package goigraph
 /*
-#cgo LDFLAGS: -L/usr/local/lib -ligraph
+#cgo LDFLAGS: -L/usr/local/lib -ligraph -lgsl
 #cgo CFLAGS: -I/usr/local/include/igraph
 #include <igraph.h>
 #include <stdio.h>
@@ -29,10 +29,16 @@ func booltoint (in bool) C.int {
     return C.int(0)
 }
 
-func CreateTestK4 () *GoGraph {
+// Create a random 3 connected graph using BG-operations
+func CreateRandom3Connected (vertices uint32) *GoGraph {
     graph := &GoGraph {}
-    C.createK4 (&graph.graph)
+    C.construct3ConnectedGraph (&graph.graph, C.uint32_t(vertices))
     return graph
+}
+
+// Evolve a 3 connected graph; i.e. starting with a graph produce another
+func (graph *GoGraph) Evolve3Connected (verticesToAdd uint32) {
+    C.evolve3ConnectedGraph (&graph.graph, C.uint32_t(verticesToAdd));
 }
 
 // Create and return a K4
@@ -123,5 +129,4 @@ func (graph *GoGraph) MinCutValue () float64 {
     res := float64(result)
     return res
 }
-
 
