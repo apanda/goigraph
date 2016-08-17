@@ -1,12 +1,9 @@
 // A Go library wrapping igraph
 package goigraph
-/*
-#cgo LDFLAGS: -L/usr/local/lib -ligraph -lgsl
-#cgo CFLAGS: -I/usr/local/include/igraph
-#include <igraph.h>
-#include <stdio.h>
-#include "primitives.h"
-*/
+// #cgo pkg-config: igraph gsl
+// #include <igraph.h>
+// #include <stdio.h>
+// #include "primitives.h"
 import "C"
 import (
     "os"
@@ -78,7 +75,7 @@ func (graph *GoGraph) WriteGraphML (file *os.File) error {
     //C.testWriteGraphMl(&graph.graph) 
     //return nil
     fstruct := C.fdopen(C.int(file.Fd()), C.CString("w"))
-    err := C.igraph_write_graph_graphml(&graph.graph, fstruct)
+    err := C.igraph_write_graph_graphml(&graph.graph, fstruct, 0)
     if err != 0 {
         return errors.New("Write failed")
     }
